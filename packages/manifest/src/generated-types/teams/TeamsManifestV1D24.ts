@@ -14,7 +14,7 @@ export interface TeamsManifestV1D24 {
      * Teams apps to other parts of the Microsoft 365 ecosystem. More info at
      * https://aka.ms/extendteamsapps.
      */
-    manifestVersion: "1.23";
+    manifestVersion: "1.24";
     /**
      * The version of the app. Changes to your manifest should cause a version change. This
      * version string must follow the semver standard (http://semver.org).
@@ -3159,7 +3159,7 @@ const typeMap: any = {
         "general",
     ],
     "ManifestVersion": [
-        "1.23",
+        "1.24",
     ],
     "Permission": [
         "identity",
