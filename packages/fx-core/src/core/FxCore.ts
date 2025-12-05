@@ -91,6 +91,7 @@ import { YamlParser } from "../component/configManager/parser";
 import {
   AadConstants,
   KiotaLastCommands,
+  LocalMcpPrefix,
   SingleSignOnOptionItem,
   ViewAadAppHelpLinkV5,
 } from "../component/constants";
@@ -202,6 +203,7 @@ import {
 } from "./collaborator";
 import { LocalCrypto } from "./crypto";
 import { environmentNameManager } from "./environmentName";
+import { generateConfigFiles } from "./generateConfigFiles";
 import { ConcurrentLockerMW } from "./middleware/concurrentLocker";
 import { ContextInjectorMW } from "./middleware/contextInjector";
 import { ErrorHandlerMW } from "./middleware/errorHandler";
@@ -216,7 +218,6 @@ import {
 import { addSharedUsers, removeShareAccess, shareWithTenant } from "./share";
 import { CoreTelemetryEvent, CoreTelemetryProperty } from "./telemetry";
 import { CoreHookContext, PreProvisionResForVS, VersionCheckRes } from "./types";
-import { LocalMcpPrefix } from "../component/constants";
 
 export class FxCore {
   constructor(tools: Tools) {
@@ -3242,6 +3243,25 @@ export class FxCore {
       );
       return err(systemErr);
     }
+  }
+
+  /**
+   * dynamic template metadata download
+   */
+  @hooks([ErrorContextMW({ component: "FxCore", stage: "generateConfigFiles" }), ErrorHandlerMW])
+  async generateConfigFiles(inputs: Inputs): Promise<Result<undefined, FxError>> {
+    const appManifestFilePath = inputs[QuestionNames.ManifestPath] as string;
+    const includePlayground = inputs["include-playground"];
+    const includeLocalDebug = inputs["include-local"];
+    const includeRemoteDeploy = inputs["include-remote"];
+    const programmingLanguage = inputs["programming-language"];
+    return await generateConfigFiles(
+      appManifestFilePath,
+      programmingLanguage,
+      includePlayground,
+      includeLocalDebug,
+      includeRemoteDeploy
+    );
   }
 
   private async updateAuthActionInYaml(
