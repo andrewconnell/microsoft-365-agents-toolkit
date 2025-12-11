@@ -116,20 +116,24 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ secrets.TEST_SUBSCRIPTION_ID_NEW }}
       AZURE_AUTH_ENABLED: ${{ secrets.AZURE_SERVICE_PRINCIPAL_ID != '' && secrets.AZURE_SERVICE_PRINCIPAL_SECRET != '' && secrets.TEST_TENANT_ID_NEW != '' }}
       # M365 account for testing
-      M365_USERNAME_1: "test21@xxbdw.onmicrosoft.com"
-      M365_USERNAME_2: "test22@xxbdw.onmicrosoft.com"
-      M365_USERNAME_3: "test23@xxbdw.onmicrosoft.com"
-      M365_USERNAME_4: "test24@xxbdw.onmicrosoft.com"
-      M365_USERNAME_5: "test31@xxbdw.onmicrosoft.com"
-      M365_USERNAME_6: "test32@xxbdw.onmicrosoft.com"
-      M365_USERNAME_7: "test33@xxbdw.onmicrosoft.com"
-      M365_USERNAME_8: "test34@xxbdw.onmicrosoft.com"
-      M365_USERNAME_9: "test35@xxbdw.onmicrosoft.com"
-      M365_USERNAME_10: "test36@xxbdw.onmicrosoft.com"
-      M365_USERNAME_11: "test37@xxbdw.onmicrosoft.com"
-      M365_USERNAME_12: "test38@xxbdw.onmicrosoft.com"
+      M365_USERNAME_1: "test001@xxbdw.onmicrosoft.com"
+      M365_USERNAME_2: "test002@xxbdw.onmicrosoft.com"
+      M365_USERNAME_3: "test003@xxbdw.onmicrosoft.com"
+      M365_USERNAME_4: "test004@xxbdw.onmicrosoft.com"
+      M365_USERNAME_5: "test005@xxbdw.onmicrosoft.com"
+      M365_USERNAME_6: "test006@xxbdw.onmicrosoft.com"
+      M365_USERNAME_7: "test007@xxbdw.onmicrosoft.com"
+      M365_USERNAME_8: "test008@xxbdw.onmicrosoft.com"
+      M365_USERNAME_9: "test009@xxbdw.onmicrosoft.com"
+      M365_USERNAME_10: "test010@xxbdw.onmicrosoft.com"
+      M365_USERNAME_11: "test011@xxbdw.onmicrosoft.com"
+      M365_USERNAME_12: "test012@xxbdw.onmicrosoft.com"
+      M365_USERNAME_13: "test013@xxbdw.onmicrosoft.com"
+      M365_USERNAME_14: "test014@xxbdw.onmicrosoft.com"
+      M365_USERNAME_15: "test015@xxbdw.onmicrosoft.com"
+      M365_USERNAME_16: "test016@xxbdw.onmicrosoft.com"
+      M365_USERNAME_17: "test017@xxbdw.onmicrosoft.com"
       M365_ACCOUNT_PASSWORD: ${{ secrets.TEST_M365_PASSWORD }}
-
       # The test account for Copilot features
       M365_ACCOUNT_NAME_EnableCopilotAccess: "test01@atktesting.onmicrosoft.com"
       M365_ACCOUNT_PASSWORD_EnableCopilotAccess: ${{ secrets.TEST_M365_PASSWORD_NEW }}
@@ -208,7 +212,7 @@ jobs:
 
       - name: Set m365 account randomly
         run: |
-          users=("${{ env.M365_USERNAME_1 }}" "${{ env.M365_USERNAME_2 }}" "${{ env.M365_USERNAME_3 }}" "${{ env.M365_USERNAME_4 }}" "${{ env.M365_USERNAME_5 }}" "${{ env.M365_USERNAME_6 }}" "${{ env.M365_USERNAME_7 }}" "${{ env.M365_USERNAME_8 }}" "${{ env.M365_USERNAME_9 }}" "${{ env.M365_USERNAME_10 }}" "${{ env.M365_USERNAME_11 }}" "${{ env.M365_USERNAME_12 }}")
+          users=("${{ env.M365_USERNAME_2 }}" "${{ env.M365_USERNAME_3 }}" "${{ env.M365_USERNAME_6 }}" "${{ env.M365_USERNAME_9 }}" "${{ env.M365_USERNAME_10 }}" "${{ env.M365_USERNAME_15 }}")
           count=${#users[@]}
           index=$((RANDOM%$count))
           echo "account index: $index"
@@ -327,7 +331,43 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MAX_RETRIES: ${{ github.event.inputs.max_retries || 7 }}
+      M365_ACCOUNT_PASSWORD: ${{ secrets.TEST_M365_PASSWORD }}
+      M365_ACCOUNT_NAME: "test14@xxbdw.onmicrosoft.com"
+      CLEAN_CLIENT_ID: ${{ secrets.TEST_CLEAN_CLIENT_ID }}
+      CLEAN_CLIENT_SECRET: ${{ secrets.TEST_CLEAN_CLIENT_SECRET }}
+      CLEAN_TENANT_ID: ${{ secrets.TEST_CLEAN_TENANT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.TEST_SUBSCRIPTION_ID }}
+      AZURE_ACCOUNT_NAME: ${{ secrets.TEST_USER_NAME }}
+      AZURE_ACCOUNT_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
     steps:
+      - name: Checkout
+        if: ${{ github.event_name == 'schedule' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Setup node
+        if: ${{ github.event_name == 'schedule' }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v4
+        if: ${{ github.event_name == 'schedule' }}
+
+      - name: Setup project
+        if: ${{ github.event_name == 'schedule' }}
+        working-directory: ./
+        run: |
+          npm run setup:e2e
+
+      - name: Clean resources
+        if: ${{ github.event_name == 'schedule' }}
+        working-directory: packages/tests
+        run: |
+          npx ts-node src/scripts/clean.ts
+
       - name: Calculate max retries
         id: calc-retries
         run: |
@@ -458,7 +498,7 @@ jobs:
           
           while :
           do
-            url="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/jobs?per_page=100&page=$page"
+            url="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/jobs?per_page=80&page=$page"
             echo "Fetching URL: $url"
       
             resp=$(curl -s -H "Accept: application/vnd.github.v3+json" -u:${{ secrets.GITHUB_TOKEN }} "$url")
@@ -522,14 +562,14 @@ jobs:
               title=$(jq -r '.plan_metadata.name // "Unknown Test Case Title"' "$plan_file")
               echo "Extracted title: $title"
               
-              # Get description (work item IDs) from plan_metadata.description
-              # Description may contain multiple work item IDs separated by comma, space, or semicolon
-              description=$(jq -r '.plan_metadata.description // ""' "$plan_file")
-              if [ -n "$description" ] && [ "$description" != "null" ]; then
+              # Get work item IDs from plan_metadata.description.workitem
+              # Workitem may contain multiple work item IDs separated by comma, space, or semicolon
+              workitem=$(jq -r '.plan_metadata.description.workitem // ""' "$plan_file")
+              if [ -n "$workitem" ] && [ "$workitem" != "null" ]; then
                 # Split by comma, space, or semicolon and process each work item ID
                 work_item_links=""
                 # Replace commas and semicolons with spaces, then iterate
-                for item_id in $(echo "$description" | tr ',;' ' '); do
+                for item_id in $(echo "$workitem" | tr ',;' ' '); do
                   # Trim whitespace
                   item_id=$(echo "$item_id" | xargs)
                   if [ -n "$item_id" ]; then
@@ -545,7 +585,7 @@ jobs:
                 if [ -n "$work_item_links" ]; then
                   work_item_url="$work_item_links"
                 else
-                  work_item_url="$description"
+                  work_item_url="$workitem"
                 fi
               fi
               echo "Extracted work items: $work_item_url"
