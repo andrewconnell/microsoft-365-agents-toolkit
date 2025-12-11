@@ -16,7 +16,7 @@
     "teamsfx",
     "teamsfx-server"
   ],
-  "private": "true",
+  "private": true,
   "scripts": {
     "copy-files": "copyfiles -u 1 src/**/*.html src/**/*.css src/**/*.sh src/**/*.ps1 lib/",
     "build": "rimraf lib && tsc -p ./ && npm run copy-files",
